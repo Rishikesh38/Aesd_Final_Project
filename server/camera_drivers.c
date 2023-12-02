@@ -35,6 +35,7 @@
 #include <time.h>
 #include <math.h>
 #include <limits.h>
+#include "camera_drivers.h"
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 #define HRES 640
@@ -191,7 +192,7 @@ void continuous_transformation(const unsigned char *p, int size)
  *
  * @return  This function does not return a value.
  */
-static void stop_capturing(void)
+void stop_capturing(void)
 {
         enum v4l2_buf_type type;
         type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -212,7 +213,7 @@ static void stop_capturing(void)
  *
  * @return  This function does not return a value.
  */
-static void start_capturing(void)
+void start_capturing(void)
 {
         unsigned int i;
         enum v4l2_buf_type type;
@@ -247,7 +248,7 @@ static void start_capturing(void)
  *
  * @return  This function does not return a value.
  */
-static void uninit_device(void)
+void uninit_device(void)
 {
         unsigned int i;
         for (i = 0; i < n_buffers; ++i)
@@ -273,7 +274,7 @@ static void uninit_device(void)
  *
  * @return  This function does not return a value.
  */
-static void init_mmap(void)
+void init_mmap(void)
 {
         struct v4l2_requestbuffers req;
 
@@ -352,7 +353,7 @@ static void init_mmap(void)
  *
  * @return  This function does not return a value.
  */
-static void init_device(void)
+void init_device(void)
 {
     struct v4l2_capability cap;
     struct v4l2_cropcap cropcap;
@@ -472,7 +473,7 @@ static void init_device(void)
  *
  * @return  This function does not return a value.
  */
-static void close_device(void)
+void close_device(void)
 {
         if (-1 == close(fd))
                 errno_exit("close");
@@ -491,7 +492,7 @@ static void close_device(void)
  *
  * @return  This function does not return a value.
  */
-static void open_device(void)
+void open_device(void)
 {
         struct stat st;
 
