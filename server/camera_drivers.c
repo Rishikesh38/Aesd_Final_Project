@@ -516,6 +516,16 @@ void open_device(void)
         }
 }
 
+
+/**
+ * @brief   Reads a frame from the video device using Video4Linux2 (V4L2) API.
+ *
+ * This function dequeues a frame buffer from the video capture device, performs
+ * continuous transformation on the captured frame, and enqueues the buffer back.
+ * It handles errors and returns 0 if no frame is available, or 1 on successful frame capture.
+ *
+ * @return  0 if no frame is available, 1 on successful frame capture.
+ */
 static int frames_reading(void)
 {
     struct v4l2_buffer buf_service;
@@ -554,6 +564,15 @@ static int frames_reading(void)
     return 1;
 }
 
+/**
+ * @brief   Captures a picture from the video device and waits for a frame to be available.
+ *
+ * This function uses the select system call to wait for a frame to be available
+ * for capture. It calls the frames_reading function to handle the actual frame capture.
+ * It has a timeout of 2 seconds and exits on failure.
+ *
+ * @return  None
+ */
 void capture_pic(void)
 {
 
@@ -592,6 +611,14 @@ void capture_pic(void)
     }
 }
 
+/**
+ * @brief   Captures a picture and returns the buffer containing the captured image.
+ *
+ * This function calls the capture_pic function to capture a picture and returns
+ * the buffer containing the captured image data.
+ *
+ * @return  Pointer to the buffer containing the captured image.
+ */
 unsigned char *return_pic_buffer()
 {
     capture_pic();
