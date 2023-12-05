@@ -38,9 +38,11 @@
 #include "camera_drivers.h"
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
+#define HRES_STR "640"
+#define VRES_STR "480"
 #define HRES 640
 #define VRES 480
-
+#define STARTUP_FRAMES 30
 
 static struct v4l2_format fmt;
 
@@ -49,10 +51,6 @@ struct buffer
         void   *start;
         size_t  length;
 };
-
-
-
-
 
 
 static char            *dev_name;
@@ -625,7 +623,6 @@ unsigned char *return_pic_buffer()
     return bigbuffer;
 }
 
-/*
 void dump_ppm(const unsigned char *p, int size, int frame_number)
 {
     int written, total, dumpfd;
@@ -648,26 +645,35 @@ void dump_ppm(const unsigned char *p, int size, int frame_number)
         written = write(dumpfd, p, size);
         total += written;
     } while (total < size);
-
     close(dumpfd);
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    if(argc > 1)
+        dev_name = argv[1];
+    else
+        dev_name = "/dev/video0";
+
     printf("Starting main\n");
     open_device();
     init_device();
     start_capturing();
     unsigned char *temp_frame;
     printf("About to dump\n");
-    for(int i = 0;i<30;i++)
+    for(int i = 0;i<30+STARTUP_FRAMES;i++)
     {
-        temp_frame = return_pic_buffer;
-        dump_ppm(temp_frame,((614400*6)/4),i);
+        printf("about to pick temp\n");
+        temp_frame = return_pic_buffer();
+        printf("temp picked\n");
+        if(i > STARTUP_FRAMES)
+        {
+            dump_ppm(temp_frame,((614400*6)/4),i - STARTUP_FRAMES);
+        }
+        printf("dumped\n");
     }
     printf("dump done\n");
     stop_capturing();
     uninit_device();
     close_device();
 }
-*/
