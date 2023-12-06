@@ -30,9 +30,9 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/mman.h>
+#include <time.h>
 #include <sys/ioctl.h>
 #include <linux/videodev2.h>
-#include <time.h>
 #include <math.h>
 #include <limits.h>
 #include "camera_drivers.h"
@@ -49,11 +49,6 @@ struct buffer
         void   *start;
         size_t  length;
 };
-
-
-
-
-
 
 static char            *dev_name;
 static int              fd = -1;
@@ -495,7 +490,8 @@ void close_device(void)
 void open_device(void)
 {
         struct stat st;
-
+        dev_name = "/dev/video0";
+        
         if (-1 == stat(dev_name, &st)) {
                 fprintf(stderr, "Cannot identify '%s': %d, %s\n",
                          dev_name, errno, strerror(errno));
@@ -624,50 +620,3 @@ unsigned char *return_pic_buffer()
     capture_pic();
     return bigbuffer;
 }
-
-/*
-void dump_ppm(const unsigned char *p, int size, int frame_number)
-{
-    int written, total, dumpfd;
-    char ppm_header[100];  // Adjust the size based on your requirements
-    char ppm_dumpname[30]; // Adjust the size based on your requirements
-
-    snprintf(ppm_dumpname, sizeof(ppm_dumpname), "frames/frame%d.ppm", frame_number);
-    dumpfd = open(ppm_dumpname, O_WRONLY | O_NONBLOCK | O_CREAT, 00666);
-
-    // PPM header construction
-    snprintf(ppm_header, sizeof(ppm_header), "P6\n#Frame %d\n%s %s\n255\n", frame_number, HRES_STR, VRES_STR);
-
-    // Write header to file
-    written = write(dumpfd, ppm_header, strlen(ppm_header));
-
-    total = 0;
-    // Write frame data to file
-    do
-    {
-        written = write(dumpfd, p, size);
-        total += written;
-    } while (total < size);
-
-    close(dumpfd);
-}
-
-int main()
-{
-    printf("Starting main\n");
-    open_device();
-    init_device();
-    start_capturing();
-    unsigned char *temp_frame;
-    printf("About to dump\n");
-    for(int i = 0;i<30;i++)
-    {
-        temp_frame = return_pic_buffer;
-        dump_ppm(temp_frame,((614400*6)/4),i);
-    }
-    printf("dump done\n");
-    stop_capturing();
-    uninit_device();
-    close_device();
-}
-*/

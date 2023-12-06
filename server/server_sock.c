@@ -1,3 +1,17 @@
+/**
+ * @file server_sock.c
+ * @brief Server-side socket program for serving image data to clients.
+ *
+ * This program creates a TCP server, initializes a camera to capture images,
+ * and sends the image data to connected clients. It includes signal handling
+ * for graceful exit on signals like SIGINT and SIGTERM.
+ * Reference : https://beej.us/guide/bgnet/html/#what-is-a-socket and Prof Lectures/notes on sockets
+ *
+ * @author Rishikesh Goud Sundaragiri
+ * @date 5th Dec 2023
+ */
+#define _POSIX_C_SOURCE 200809L
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -19,6 +33,17 @@
 #include <linux/fs.h>
 #include <pthread.h>
 #include "camera_drivers.h"
+
+#define SUCCESS_FLAG 0
+#define SIGINT_FAIL 1
+#define SIGTERM_FAIL 2
+#define SOCKET_API_FAIL 3
+#define ADDR_API_FAIL 4
+#define SET_SOCK_API_FAIL 5
+#define BIND_API_FAIL 6
+#define LISTEN_API_FAIL 7
+#define ACCEPT_API_FAIL 8
+
 
 int server_sock_fd;
 int client_connection_fd;
@@ -43,7 +68,7 @@ void camera_off()
         close_device();
 }
 
-//Modify this 
+
 void signal_handler(int sig)
 {
 	if(sig==SIGINT)
@@ -55,13 +80,13 @@ void signal_handler(int sig)
 		syslog(LOG_INFO,"Caught SIGTERM, leaving");
 	}
 	
-	//Close socket and client connection
-	close(socket_fd);
-	close(accept_return);
+	/* Close socket and client connection */
+	close(server_sock_fd);
+	close(client_connection_fd);
 	syslog(LOG_ERR,"Closed connection with %s",inet_ntoa(client_addr.sin_addr));
 	printf("Closed connection with %s\n",inet_ntoa(client_addr.sin_addr));
-	
-	exit(0); //Exit success 
+	/* Exit success */
+	exit(SUCCESS_FLAG); 
 }
 
 int main()
@@ -76,15 +101,15 @@ int main()
     camera_init();
 
     /* initialise the signal handler */
-	if(signal(SIGINT,signal_handler)==SIG_ERR)
+	if(SIG_ERR == signal(SIGINT,signal_handler))
 	{
 		syslog(LOG_ERR,"SIGINT failed");
-		exit(2);
+		exit(SIGINT_FAIL);
 	}
-	if(signal(SIGTERM,signal_handler)==SIG_ERR)
+	if(SIG_ERR == signal(SIGTERM,signal_handler))
 	{
 		syslog(LOG_ERR,"SIGTERM failed");
-		exit(3);
+		exit(SIGTERM_FAIL);
 	}
 
     /* start server socket code */
@@ -92,7 +117,7 @@ int main()
     if(-1 == server_sock_fd)
     {
 		syslog(LOG_ERR, "Failed to create server socket");
-		exit(4);        
+		exit(SOCKET_API_FAIL);        
     }
 
     hints.ai_flags=AI_PASSIVE;
@@ -101,13 +126,13 @@ int main()
     if(get_addr != 0)
     {
 		syslog(LOG_ERR, "Failed to get the address from getaddrinfo");
-		exit(5);        
+		exit(ADDR_API_FAIL);        
     }
     sockopt_status = setsockopt(server_sock_fd,SOL_SOCKET,SO_REUSEADDR,&num,sizeof(num));
     if(-1 == sockopt_status)
     {
 		syslog(LOG_ERR, "Failed the setsockopt function call");
-		exit(6);        
+		exit(SET_SOCK_API_FAIL);        
     }
 
     bind_status = bind(server_sock_fd,server_info->ai_addr,sizeof(struct sockaddr));
@@ -115,23 +140,25 @@ int main()
 	{
 		freeaddrinfo(server_info); 
 		syslog(LOG_ERR, "Failed the bind function call");
-		exit(7);
+		exit(BIND_API_FAIL);
 	}
 
     freeaddrinfo(server_info); 
 
     listen_status=listen(server_sock_fd,1); 
-	if(-1 = listen_status)
+	if(-1 == listen_status)
 	{
 		syslog(LOG_ERR, "Failed the listen function call");
-		exit(8);
+		exit(LISTEN_API_FAIL);
 	}
-
+accept:
+	printf("About to accept\n");
     client_connection_fd = accept(server_sock_fd,(struct sockaddr *)&client_addr,&size);
+	printf("accept ran\n");
 	if(-1 == client_connection_fd)
 	{
 		syslog(LOG_ERR, "Failed to accept the connection");
-		exit(9);
+		exit(ACCEPT_API_FAIL);
 	}
     else
 	{
@@ -141,7 +168,15 @@ int main()
 
     while(1)
     {
-        
+		int bytes_sent;
+        unsigned char *temp_frame;
+		temp_frame = return_pic_buffer();
+		bytes_sent = send(client_connection_fd,temp_frame,((614400*6)/4),0);
+		if(-1 == bytes_sent)
+		{
+			printf("Goto accepting a new connection \n");
+			goto accept;
+		}
     }
 
 }

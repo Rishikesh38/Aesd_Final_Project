@@ -1,16 +1,21 @@
-# Makefile for compiling camera_drivers.c on Raspberry Pi
+# Makefile for server_sock.c
 
 CC = gcc
-CFLAGS = -Wall -O2
-LDFLAGS = -lm -lpthread
+CFLAGS = -Wall -Wextra -pedantic -std=c11
+LDFLAGS = -pthread
 
-TARGET = camera_app
-SRC = camera_drivers.c
+SRC = server_sock.c camera_drivers.c
+OBJ = $(SRC:.c=.o)
+TARGET = server_sock
 
 all: $(TARGET)
 
-$(TARGET): $(SRC)
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+$(TARGET): $(OBJ)
+        $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+
+%.o: %.c
+        $(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f $(TARGET)
+        rm -f $(OBJ) $(TARGET)
+~                                     
