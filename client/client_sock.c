@@ -36,7 +36,7 @@
 #define PORT 9000
 #define HRES_STR "640"
 #define VRES_STR "480"
-#define STARTUP_FRAMES 10
+#define STARTUP_FRAMES 20
 int client_fd;
 static int current_frame = 0;
 
@@ -91,6 +91,8 @@ int main(int argc, char const* argv[])
     struct sockaddr_in my_addr;
     int status;
     int num_frame = 1;
+    int requested_frames = 0;
+    requested_frames = atoi(argv[2]);
     openlog(NULL,LOG_PID, LOG_USER);
     if(SIG_ERR == signal(SIGINT,signal_handler))
 	{
@@ -127,8 +129,8 @@ int main(int argc, char const* argv[])
 		exit(CONNECT_API_FAIL);
 	}
     printf("connected\n");
-
-    while (num_frame  < 100)
+    printf("%d is the requested frames\n",requested_frames);
+    while (num_frame  <= requested_frames)
     {
         unsigned char buffer[((614400 * 6) / 4)];
         int bytes_received;
