@@ -1,4 +1,5 @@
 # Makefile for server_sock.c
+
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -std=c11
 
@@ -9,10 +10,10 @@ TARGET = server_sock
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
-    $(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^
 
 %.o: %.c
-    $(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-    rm -f $(OBJ) $(TARGET)
+	rm -f $(OBJ) $(TARGET)
